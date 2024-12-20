@@ -8,11 +8,15 @@ def consolidate_masks(
 ) -> torch.Tensor:
     n_frames = masks.shape[0]
     frames_per_latent = 4
+    expected_frames = (num_latents * frames_per_latent) - 3
 
-    if n_frames == 1 or method == "first_only":
+    if n_frames == expected_frames:
+        return masks
+    elif n_frames == 1 or method == "first_only":
         return masks[:1].repeat(num_latents, 1, 1)
     
-    expected_frames = (num_latents * frames_per_latent) - 3
+
+    
     if n_frames != expected_frames:
         raise ValueError(
             f"For {num_latents} latents, expected {expected_frames} frames "
