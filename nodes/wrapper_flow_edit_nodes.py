@@ -24,7 +24,6 @@ class HyVideoFlowEditSamplerNode:
                 "target_guidance_scale": ("FLOAT", {"default": 12.0, "min": 0.0, "max": 30.0, "step": 0.01}),
                 "drift_guidance_scale": ("FLOAT", {"default": 6.0, "min": 0.0, "max": 30.0, "step": 0.01}),
                 "flow_shift": ("FLOAT", {"default": 6.0, "min": 1.0, "max": 30.0, "step": 0.01}),
-                "drift_flow_shift": ("FLOAT", {"default": 3.0, "min": 1.0, "max": 30.0, "step": 0.01}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                 "force_offload": ("BOOLEAN", {"default": True}),
             },
@@ -40,7 +39,6 @@ class HyVideoFlowEditSamplerNode:
                 source_embeds, 
                 target_embeds,
                 flow_shift, 
-                drift_flow_shift,
                 steps, 
                 skip_steps,
                 drift_steps,
@@ -100,19 +98,10 @@ class HyVideoFlowEditSamplerNode:
         except:
             pass
 
-        # drift_flow_shift
-        
         pipeline.scheduler.shift = flow_shift
         pipeline.scheduler.set_timesteps(steps, device=device)
         timesteps = pipeline.scheduler.timesteps
         timesteps = torch.cat([timesteps, torch.tensor([0]).to(timesteps.device)]).to(timesteps.device)
-
-        pipeline.scheduler.shift = drift_flow_shift
-        pipeline.scheduler.set_timesteps(steps, device=device)
-        drift_timesteps = pipeline.scheduler.timesteps
-        drift_timesteps = torch.cat([drift_timesteps, torch.tensor([0]).to(drift_timesteps.device)]).to(drift_timesteps.device)
-
-        timesteps[-drift_steps:] = drift_timesteps[-drift_steps:]
 
         latent_video_length = (num_frames - 1) // 4 + 1
 
