@@ -1,8 +1,20 @@
 import torch
 from torch import Tensor
 
-from comfy.ldm.flux.math import attention
+from comfy.ldm.flux.math import apply_rope
 from comfy.ldm.flux.layers import SingleStreamBlock, DoubleStreamBlock
+from comfy.ldm.modules.attention import optimized_attention
+
+from ..utils.feta_enhance_utils import get_feta_scores
+
+
+def attention(q: Tensor, k: Tensor, v: Tensor, pe: Tensor, mask=None, skip_rope=False) -> Tensor:
+    if not skip_rope:
+        q, k = apply_rope(q, k, pe)
+
+    heads = q.shape[1]
+    x = optimized_attention(q, k, v, heads, skip_reshape=True, mask=mask)
+    return x
 
 
 class ModifiedDoubleStreamBlock(DoubleStreamBlock):
@@ -28,13 +40,25 @@ class ModifiedDoubleStreamBlock(DoubleStreamBlock):
         if mask_fn is not None:
             attn_mask = mask_fn(None, transformer_options, txt.shape[1])
 
+        skip_rope = False
+        q = torch.cat((img_q, txt_q), dim=2)
+        k = torch.cat((img_k, txt_k), dim=2)
+        feta_scores = None
+        if transformer_options.get('feta_weight', 0) > 0 and self.idx in transformer_options['feta_layers']['double']:
+            skip_rope = True
+            q, k = apply_rope(q, k, pe)
+            txt_size = transformer_options['txt_size']
+            img_q = q[:,:,:-txt_size]
+            img_k = k[:,:,:-txt_size]
+            feta_scores = get_feta_scores(img_q, img_k, transformer_options)
+
         # run actual attention
-        attn = attention(torch.cat((img_q, txt_q), dim=2),
-                            torch.cat((img_k, txt_k), dim=2),
-                            torch.cat((img_v, txt_v), dim=2),
-                            pe=pe, mask=attn_mask)
+        attn = attention(q, k, torch.cat((img_v, txt_v), dim=2),pe=pe, mask=attn_mask, skip_rope=skip_rope)
         
         img_attn, txt_attn = attn[:, : img.shape[1]], attn[:, img.shape[1]:]
+
+        if feta_scores is not None:
+            img_attn *= feta_scores
 
         # calculate the img bloks
         img = img + img_mod1.gate * self.img_attn.proj(img_attn)
@@ -63,14 +87,28 @@ class ModifiedSingleStreamBlock(SingleStreamBlock):
         if mask_fn is not None:
             attn_mask = mask_fn(q, transformer_options, None)
             
+        skip_rope = False
+        feta_scores = None
+        txt_size = transformer_options['txt_size']
+        if transformer_options.get('feta_weight', 0) > 0 and self.idx in transformer_options['feta_layers']['single']:
+            skip_rope = True
+            q, k = apply_rope(q, k, pe)
+            img_q = q[:,:,:-txt_size]
+            img_k = k[:,:,:-txt_size]
+            feta_scores = get_feta_scores(img_q, img_k, transformer_options)
 
         # compute attention
-        attn = attention(q, k, v, pe=pe, mask=attn_mask)
+        attn = attention(q, k, v, pe=pe, mask=attn_mask, skip_rope=skip_rope)
+
+        if feta_scores is not None:
+            attn[:,:-txt_size] *= feta_scores
+
         # compute activation in mlp stream, cat again and run second linear layer
         output = self.linear2(torch.cat((attn, self.mlp_act(mlp)), 2))
         x += mod.gate * output
         if x.dtype == torch.float16:
             x = torch.nan_to_num(x, nan=0.0, posinf=65504, neginf=-65504)
+
         return x
 
 

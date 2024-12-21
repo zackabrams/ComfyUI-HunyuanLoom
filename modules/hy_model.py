@@ -25,6 +25,7 @@ class ModifiedHunyuanVideo(HunyuanVideo):
         patches_replace = transformer_options.get("patches_replace", {})
 
         initial_shape = list(img.shape)
+        transformer_options['original_shape'] = initial_shape
         # running on sequences img
         img = self.img_in(img)
         vec = self.time_in(timestep_embedding(timesteps, 256, time_factor=1.0).to(img.dtype))
@@ -39,6 +40,7 @@ class ModifiedHunyuanVideo(HunyuanVideo):
         if txt_mask is not None and not torch.is_floating_point(txt_mask):
             txt_mask = (txt_mask - 1).to(img.dtype) * torch.finfo(img.dtype).max
 
+        transformer_options['txt_size'] = txt.shape[1]
         txt = self.txt_in(txt, timesteps, txt_mask)
 
         ids = torch.cat((img_ids, txt_ids), dim=1)

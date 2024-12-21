@@ -6,6 +6,8 @@ from .nodes.flowedit_nodes import HYFlowEditGuiderNode, HYFlowEditSamplerNode
 from .nodes.hy_regional_cond_nodes import HYApplyRegionalCondsNode, HYCreateRegionalCondNode
 from .nodes.hy_attn_override_node import HYAttnOverrideNode
 
+from .nodes.hy_feta_enhance_node import HYFetaEnhanceNode
+
 from .nodes.wrapper_flow_edit_nodes import HyVideoFlowEditSamplerNode
 
 
@@ -23,6 +25,8 @@ NODE_CLASS_MAPPINGS = {
     "HYApplyRegionalConds": HYApplyRegionalCondsNode,
     "HYCreateRegionalCond": HYCreateRegionalCondNode,
     "HYAttnOverride": HYAttnOverrideNode,
+    # Enhance
+    "HYFetaEnhance": HYFetaEnhanceNode,
     # Wrapper
     "HyVideoFlowEditSamplerWrapper": HyVideoFlowEditSamplerNode,
 }
@@ -41,6 +45,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "HYApplyRegionalConds": "HY Apply Regional Conds",
     "HYCreateRegionalCond": "HY Create Regional Cond",
     "HYAttnOverride": "HY Attention Override",
+    # Enhance
+    "HYFetaEnhance": "HY Feta Enhance",
     # Wrapper
     "HyVideoFlowEditSamplerWrapper": "HunyuanVideo Flow Edit Sampler (Wrapper)",
 }
