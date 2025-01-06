@@ -7,6 +7,7 @@ import comfy.model_management as mm
 from ..utils.rope_utils import get_rotary_pos_embed
 from ..utils.latent_preview import prepare_callback
 
+VAE_SCALING_FACTOR = 0.476986
 
 class HyVideoFlowEditSamplerNode:
     @classmethod
@@ -59,7 +60,7 @@ class HyVideoFlowEditSamplerNode:
         
         generator = torch.Generator(device=torch.device("cpu")).manual_seed(seed)
 
-        latents = samples["samples"] if samples is not None else None
+        latents = samples["samples"] * VAE_SCALING_FACTOR if samples is not None else None
         batch_size, num_channels_latents, latent_num_frames, latent_height, latent_width = latents.shape
         height = latent_height * pipeline.vae_scale_factor
         width = latent_width * pipeline.vae_scale_factor
@@ -102,12 +103,12 @@ class HyVideoFlowEditSamplerNode:
 
         # drift_flow_shift
         
-        pipeline.scheduler.shift = flow_shift
+        pipeline.scheduler.flow_shift = flow_shift
         pipeline.scheduler.set_timesteps(steps, device=device)
         timesteps = pipeline.scheduler.timesteps
         timesteps = torch.cat([timesteps, torch.tensor([0]).to(timesteps.device)]).to(timesteps.device)
 
-        pipeline.scheduler.shift = drift_flow_shift
+        pipeline.scheduler.flow_shift = drift_flow_shift
         pipeline.scheduler.set_timesteps(steps, device=device)
         drift_timesteps = pipeline.scheduler.timesteps
         drift_timesteps = torch.cat([drift_timesteps, torch.tensor([0]).to(drift_timesteps.device)]).to(drift_timesteps.device)
@@ -241,7 +242,7 @@ class HyVideoFlowEditSamplerNode:
                 
                 progress_bar.update()
                 if callback is not None:
-                        callback(idx, latents.detach()[-1].permute(1,0,2,3), None, steps)
+                        callback(idx, (zt_tgt - vt_tgt * sigma).detach()[-1].permute(1,0,2,3), None, steps)
                 else:
                     comfy_pbar.update(1)
                   
@@ -257,7 +258,7 @@ class HyVideoFlowEditSamplerNode:
                 gc.collect()
 
         return ({
-            "samples": x_tgt
+            "samples": x_tgt / VAE_SCALING_FACTOR
             },)
 
 
