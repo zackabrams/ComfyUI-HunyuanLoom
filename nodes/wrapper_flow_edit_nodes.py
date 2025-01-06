@@ -242,7 +242,7 @@ class HyVideoFlowEditSamplerNode:
                 
                 progress_bar.update()
                 if callback is not None:
-                        callback(idx, latents.detach()[-1].permute(1,0,2,3), None, steps)
+                        callback(idx, (zt_tgt - vt_tgt * sigma).detach()[-1].permute(1,0,2,3), None, steps)
                 else:
                     comfy_pbar.update(1)
                   
