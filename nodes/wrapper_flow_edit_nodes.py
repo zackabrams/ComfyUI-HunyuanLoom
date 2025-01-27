@@ -76,7 +76,8 @@ class HyVideoFlowEditSamplerNode:
             )
 
         freqs_cos, freqs_sin = get_rotary_pos_embed(transformer, num_frames, height, width)
-
+        freqs_cos = freqs_cos.to(device)
+        freqs_sin = freqs_sin.to(device)
         
         if model["block_swap_args"] is not None:
             for name, param in transformer.named_parameters():
