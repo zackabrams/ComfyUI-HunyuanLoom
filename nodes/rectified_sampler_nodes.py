@@ -25,11 +25,11 @@ def generate_eta_values(steps, start_time, end_time, eta, eta_trend):
 
 def get_sample_forward(gamma, start_step, end_step, gamma_trend, seed):
     # Controlled Forward ODE (Algorithm 1)
-    generator = torch.Generator()
-    generator.manual_seed(seed)
 
     @torch.no_grad()
     def sample_forward(model, y0, sigmas, extra_args=None, callback=None, disable=None):
+        generator = torch.Generator()
+        generator.manual_seed(seed)
         extra_args = {} if extra_args is None else extra_args
         Y = y0.clone()
         y1 = torch.randn(Y.shape, generator=generator).to(y0.device)
@@ -37,7 +37,8 @@ def get_sample_forward(gamma, start_step, end_step, gamma_trend, seed):
         s_in = y0.new_ones([y0.shape[0]])
         gamma_values = generate_eta_values(N, start_step, end_step, gamma, gamma_trend)
         for i in trange(N, disable=disable):
-            t_i = model.inner_model.inner_model.model_sampling.timestep(sigmas[i])
+            # t_i = model.inner_model.inner_model.model_sampling.timestep(sigmas[i]) - old code
+            t_i = sigmas[i] / max(sigmas)  # - new code
 
             # 6. Unconditional Vector field uti(Yti) = u(Yti, ti, Φ(“”); φ)
             unconditional_vector_field = model(Y, s_in * sigmas[i], **extra_args) # this implementation takes sigma instead of timestep
