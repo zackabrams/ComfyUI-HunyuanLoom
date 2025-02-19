@@ -46,6 +46,32 @@ class HYFlowEditGuiderNode:
         return (guider,)
     
 
+
+class HYFlowEditGuiderCFGNode:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required":
+                    {
+                        "model": ("MODEL",),
+                        "source_cond": ("CONDITIONING", ),
+                        "source_uncond": ("CONDITIONING", ),
+                        "target_cond": ("CONDITIONING", ),
+                        "target_uncond": ("CONDITIONING", ),
+                     }
+                }
+
+    RETURN_TYPES = ("GUIDER",)
+
+    FUNCTION = "get_guider"
+    CATEGORY = "hunyuanloom"
+
+    def get_guider(self, model, source_cond, source_uncond, target_cond, target_uncond):
+        guider = FlowEditGuider(model)
+        guider.set_conds(source_positive=source_cond, source_negative=source_uncond, target_positive=target_cond, target_negative=target_uncond)
+        guider.set_cfg(1.0)
+        return (guider,)
+
+
 def get_flowedit_sample(skip_steps, refine_steps, generator):
     @torch.no_grad()
     def flowedit_sample(model, x_init, sigmas, extra_args=None, callback=None, disable=None):
@@ -57,7 +83,7 @@ def get_flowedit_sample(skip_steps, refine_steps, generator):
         model_options['transformer_options'] = transformer_options
         extra_args['model_options'] = model_options
 
-        source_extra_args = {**extra_args, 'model_options': { 'transformer_options': { 'latent_type': 'source '} }}
+        source_extra_args = {**extra_args, 'model_options': { 'transformer_options': { 'latent_type': 'source'} }}
 
         sigmas = sigmas[skip_steps:]
 
