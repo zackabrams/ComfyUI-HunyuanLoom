@@ -66,6 +66,29 @@ class HYFlowEditGuiderNode:
         guider.set_cfg(1.0)
         return (guider,)
 
+class HYFlowEditGuiderAdvNode:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required":
+                    {
+                        "model": ("MODEL",),
+                        "source_cond": ("CONDITIONING", ),
+                        "target_cond": ("CONDITIONING", ),
+                        "num_repeats": ("INT", {"default": 1, "min": 1, "max": 10}),
+                     }
+                }
+
+    RETURN_TYPES = ("GUIDER",)
+    FUNCTION = "get_guider"
+    CATEGORY = "hunyuanloom"
+
+    def get_guider(self, model, source_cond, target_cond, num_repeats):
+        guider = FlowEditGuider(model)
+        guider.set_conds(source_positive=source_cond, target_positive=target_cond)
+        guider.set_cfg(1.0)
+        guider.set_num_repeats(num_repeats)
+        return (guider,)
+
 
 class HYFlowEditGuiderCFGNode:
     @classmethod
