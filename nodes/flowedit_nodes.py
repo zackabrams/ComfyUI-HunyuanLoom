@@ -57,6 +57,8 @@ class HYFlowEditGuiderCFGNode:
                         "source_uncond": ("CONDITIONING", ),
                         "target_cond": ("CONDITIONING", ),
                         "target_uncond": ("CONDITIONING", ),
+                        "source_cfg": ("FLOAT", {"default": 2, "min": 0, "max": 0xffffffffffffffff, "step": 0.01 }),
+                        "target_cfg": ("FLOAT", {"default": 4.5, "min": 0, "max": 0xffffffffffffffff, "step": 0.01 }),
                      }
                 }
 
@@ -65,10 +67,10 @@ class HYFlowEditGuiderCFGNode:
     FUNCTION = "get_guider"
     CATEGORY = "hunyuanloom"
 
-    def get_guider(self, model, source_cond, source_uncond, target_cond, target_uncond):
+    def get_guider(self, model, source_pos, source_neg, target_pos, target_neg, source_cfg, target_cfg):
         guider = FlowEditGuider(model)
-        guider.set_conds(source_positive=source_cond, source_negative=source_uncond, target_positive=target_cond, target_negative=target_uncond)
-        guider.set_cfg(1.0)
+        guider.set_conds(source_positive=source_pos, source_negative=source_neg, target_positive=target_pos, target_negative=target_neg)
+        guider.set_cfgs(source=source_cfg, target=target_cfg)
         return (guider,)
 
 
