@@ -20,6 +20,7 @@ NODE_CLASS_MAPPINGS = {
     "HYReverseODESampler": HYReverseODESamplerNode,
     # FlowEdit
     "HYFlowEditGuider": HYFlowEditGuiderNode,
+    "HYFlowEditGuiderAdv": HYFlowEditGuiderAdvNode,
     "HYFlowEditGuiderCFG": HYFlowEditGuiderCFGNode,
     "HYFlowEditGuiderCFGAdv": HYFlowEditGuiderCFGAdvNode,
     "HYFlowEditSampler": HYFlowEditSamplerNode,
