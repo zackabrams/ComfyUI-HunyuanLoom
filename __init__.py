@@ -21,6 +21,7 @@ NODE_CLASS_MAPPINGS = {
     # FlowEdit
     "HYFlowEditGuider": HYFlowEditGuiderNode,
     "HYFlowEditGuiderCFG": HYFlowEditGuiderCFGNode,
+    "HYFlowEditGuiderCFGAdv": HYFlowEditGuiderCFGAdvNode,
     "HYFlowEditSampler": HYFlowEditSamplerNode,
     # Regional
     "HYApplyRegionalConds": HYApplyRegionalCondsNode,
