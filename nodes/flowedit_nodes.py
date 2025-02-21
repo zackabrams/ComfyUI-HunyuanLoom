@@ -43,8 +43,6 @@ class FlowEditGuider(CFGGuider):
         
         return predictions / self.num_repeats
 
-
-# Basic node for model compatibility
 class HYFlowEditGuiderNode:
     @classmethod
     def INPUT_TYPES(s):
@@ -93,7 +91,7 @@ class HYFlowEditGuiderCFGNode:
         guider.set_cfgs(source=source_cfg, target=target_cfg)
         return (guider,)
 
-
+#Add advanced node with option for multiple samples, as suggested by FlowEdit authors 
 class HYFlowEditGuiderCFGAdvNode:
     @classmethod
     def INPUT_TYPES(s):
